@@ -6,7 +6,7 @@ from django.contrib import messages
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import UserCreationForm
-from .forms import RoomForm
+from .forms import RoomForm , UserForm
 from django.db.models import Q
 
 
@@ -54,7 +54,6 @@ def registerPage(request):
 
 
 def home(request):
-
     q = request.GET.get('q') if request.GET.get('q') != None else ''
     rooms = Room.objects.filter(
         Q(topic__name__icontains=q) |
@@ -63,9 +62,9 @@ def home(request):
 
     )
 
-    topics = Topic.objects.all()
+    topics = Topic.objects.all()[0:5]
     room_count = rooms.count()
-    room_messages = Message.objects.all().filter(Q(room__topic__name__icontains = q))
+    room_messages = Message.objects.filter(Q(room__topic__name__icontains = q))
 
     context = {'rooms': rooms, 'topics': topics,
                'room_count': room_count, "room_messages": room_messages}
@@ -96,30 +95,39 @@ def room(request, pk):
 @login_required(login_url='login')
 def createRoom(request):
     form = RoomForm()
+    topics = Topic.objects.all()
     if request.method == 'POST':
-        form = RoomForm(request.POST)
-        if form.is_valid():
-            room = form.save(commit = False)
-            room.host = request.user
-            room.save
-            return redirect('home')
-    context = {'form': form}
+        
+        topic_name = request.POST.get('topic')
+        topic , created = Topic.objects.get_or_create(name = topic_name)
+        Room.objects.create(
+        host = request.user,
+        topic= topic, 
+        name = request.POST.get('name'),
+        description = request.POST.get('description')
+        )
+        
+        return redirect('home')
+    context = {'form': form ,"topics":topics }
     return render(request, 'base/room_form.html', context)
 
 
 @login_required(login_url='login')
 def updateRoom(request, pk):
     room = Room.objects.get(id=pk)
+    topics = Topic.objects.all()
     form = RoomForm(instance=room)
     if request.user != room.host:
         return HttpResponse("Not allowed")
     if request.method == 'POST':
-        form = RoomForm(request.POST, instance=room)
-
-        if form.is_valid:
-            form.save()
-            return redirect('home')
-    return render(request, 'base/room_form.html', {'form': form})
+        topic_name = request.POST.get('topic')
+        topic , created = Topic.objects.get_or_create(name = topic_name)
+        room.name = request.POST.get('name')
+        room.topic = topic
+        room.description = request.POST.get('description')
+        room.save()
+        return redirect('home')
+    return render(request, 'base/room_form.html', {'form': form ,"topics":topics, 'room': room})
 
 
 @login_required(login_url='login')
@@ -142,10 +150,34 @@ def deleteMessage(request, pk):
         message.delete()
         return redirect('home')
     return render(request, 'base/delete.html', {'obj': message})
+
+
 def userProfile(request, pk):
     user = User.objects.get(id = pk)
     rooms = user.room_set.all()
     topics = Topic.objects.all()
     room_messages = user.message_set.all()
     context = {"user":user, 'rooms':rooms,'topics':topics, 'room_messages':room_messages}
-    return render(request,'base/user_profile.html' ,context)
+    return render(request,'base/profile.html' ,context)
+
+@login_required(login_url='login')
+def editUser(request):
+    user = request.user
+    form = UserForm(instance = user)
+    if request.method == "POST":
+        form = UserForm(request.POST, instance = user)
+        if form.is_valid():
+            form.save()
+            return redirect('home')
+    return render(request, 'base/edit_user.html', {'form':form})
+
+def activities(request):
+    room_messages = Message.objects.all()
+    return render(request ,  'base/activity.html' , {'room_messages' : room_messages})
+
+    
+def browseTopics(request):
+
+    q = request.GET.get('q') if request.GET.get('q') != None else ""
+    topics = Topic.objects.filter(Q(name__icontains=q))
+    return render(request ,  'base/topics.html', {'topics':topics} )

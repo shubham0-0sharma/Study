@@ -82,7 +82,7 @@
                         >
                             <div class="avatar avatar--small">
                                 <img
-                                    src="https://randomuser.me/api/portraits/men/37.jpg"
+                                    src="{{room.host.avatar.url}}"
                                 />
                             </div>
                             <span>@{{room.host.username}}</span>
@@ -103,7 +103,7 @@
                                     >
                                         <div class="avatar avatar--small">
                                             <img
-                                                src="https://randomuser.me/api/portraits/men/37.jpg"
+                                                src="{{room_message.user.avatar.url}}"
                                             />
                                         </div>
                                         <span>@{{room_message.user}}</span>
@@ -167,7 +167,7 @@
                 <a href="{% url 'user-profile' user.id %}" class="participant">
                     <div class="avatar avatar--medium">
                         <img
-                            src="https://randomuser.me/api/portraits/men/37.jpg"
+                            src="{{user.avatar.url}}"
                         />
                     </div>
                     <p>

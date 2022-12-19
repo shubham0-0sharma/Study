@@ -47,10 +47,10 @@
     {% for room in rooms %}
     <div class="roomListRoom">
         <div class="roomListRoom__header">
-            <a href="{% url 'user-profile' room.host.id %}" class="roomListRoom__author">
+            <a href=" {% if room.host %}{% url 'user-profile' room.host.id %}{% else %} / {% endif %}" class="roomListRoom__author">
                 <div class="avatar avatar--small">
                     <img
-                        src="https://randomuser.me/api/portraits/women/11.jpg"
+                        src="{{ room.host.avatar.url }}"
                     />
                 </div>
                 <span>@{{room.host.username}}</span>
@@ -64,7 +64,7 @@
             <p>{{room.description}}</p>
         </div>
         <div class="roomListRoom__meta">
-            <a href="room.html" class="roomListRoom__joined">
+            <a href="{% url 'room' room.id %}" class="roomListRoom__joined">
                 <svg
                     version="1.1"
                     xmlns="http://www.w3.org/2000/svg"

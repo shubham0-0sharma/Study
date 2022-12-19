@@ -30,7 +30,7 @@
                 <a href="{% url 'user-profile' user.id %}">
                     <div class="avatar avatar--medium active">
                         <img
-                            src="https://randomuser.me/api/portraits/men/37.jpg"
+                            src="{{request.user.avatar.url}}"
                         />
                     </div>
                     <p>
@@ -55,7 +55,7 @@
             </div>
 
             <div class="dropdown-menu">
-                <a href="settings.html" class="dropdown-link"
+                <a href="{% url 'edit-user' %}" class="dropdown-link"
                     ><svg
                         version="1.1"
                         xmlns="http://www.w3.org/2000/svg"
